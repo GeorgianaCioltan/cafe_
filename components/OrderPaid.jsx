@@ -1,17 +1,20 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+
 
 const OrderPaid = () => {
+    const navigation = useNavigation();
     return(
         <View >
             <StatusBar style="auto" />
             <Text style={styles.text1}>Your order has been paid!</Text>
             <Text style={styles.text2}>Thank you!</Text>
             <Image source={require('../assets/726949.png')} style={styles.img} />
-            <TouchableOpacity style={styles.but} >
+            <TouchableOpacity style={styles.but} onPress={()=>navigation.navigate('PENDING')}>
                 <LinearGradient colors={['#C06A30', '#593116']} start={[0, 0]} end={[0, 1]} style={styles.butGradient}>
-                    <Text style={styles.but_txt} >See Status Orderx</Text>
+                    <Text style={styles.but_txt} >See Status Order</Text>
                 </LinearGradient>
             </TouchableOpacity>
         </View>
@@ -20,7 +23,7 @@ const OrderPaid = () => {
 const styles = StyleSheet.create({
     text1: {
         position:'relative',
-      bottom:0,
+      top:240,
       textAlign: 'center',
       fontSize: 48,
       lineHeight: 45,
@@ -29,7 +32,7 @@ const styles = StyleSheet.create({
     },
     text2: {
         position:'relative',
-        top: 30,
+        top:260,
         textAlign: 'center',
         fontSize: 48,
         lineHeight: 45,
@@ -41,14 +44,16 @@ const styles = StyleSheet.create({
         width: 300, // Set the width to the desired value
         height: 300, // Set the height to the desired value
         alignSelf: 'center',
-        resizeMode: 'center'
+        resizeMode: 'center',
+        top:240
     },
     but:{
         borderRadius: 20,
         position:'relative',
         width:330,
         height:70,
-        top:90,
+        top:280,
+        left:20,
         alignItems:'center',
         justifyContent:'center'
 

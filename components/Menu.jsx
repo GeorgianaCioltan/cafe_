@@ -1,15 +1,12 @@
-// components/Menu.jsx
-
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, TextInput, Image, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { db } from '../firebase.config';
 import { coffees, drinks, pastry } from './data';
 import Sidebar from './Sidebar';
-import { menuItems, drinks, pastry } from './data'; // Importing data from data.js
 
 const Menu = () => {
   const navigation = useNavigation();
@@ -17,6 +14,7 @@ const Menu = () => {
   const [drinksData, setDrinksData] = useState([]);
   const [pastriesData, setPastriesData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,6 +26,14 @@ const Menu = () => {
         setCoffeesData(coffeeDocs.docs.map((doc, index) => ({ id: doc.id, ...doc.data(), image: coffees[index].image })));
         setDrinksData(drinkDocs.docs.map((doc, index) => ({ id: doc.id, ...doc.data(), image: drinks[index].image })));
         setPastriesData(pastryDocs.docs.map((doc, index) => ({ id: doc.id, ...doc.data(), image: pastry[index].image })));
+
+        const userDocId = '1'; // Replace with your actual user document ID
+        const userDoc = await getDoc(doc(db, 'users', userDocId)); // Replace with the actual user document ID
+        if (userDoc.exists()) {
+          setUserId(userDoc.id);
+        } else {
+          console.log('No such user document!');
+        }
       } catch (error) {
         console.error("Error fetching data: ", error);
       } finally {
@@ -56,7 +62,7 @@ const Menu = () => {
   const handleItemPress = (item) => {
     console.log("Item from collection:", item);
     if (item.name === 'Long Espresso') {
-      navigation.navigate('LongEspresso');
+      navigation.navigate('LongEspresso', { userId: userId });
     }
     if (item.name === 'Americano') {
       navigation.navigate('Americano');

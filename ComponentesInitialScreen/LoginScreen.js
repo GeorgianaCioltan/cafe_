@@ -1,43 +1,59 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../firebase.config'; // Import your Firestore configuration
 
-const LoginScreen = () => {
-  const [text1, setText1] = useState('');
-  const [text2, setText2] = useState('');
+const LoginScreen = ({ navigation }) => { // Receive navigation prop
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
 
-  const handleButtonPress = () => {
-    alert(`Texto 1: ${text1}\nTexto 2: ${text2}`);
+  const handleLogin = async () => {
+    try {
+      // Query Firestore to find a user with the provided email and password
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('email', '==', email), where('password', '==', password));
+      const querySnapshot = await getDocs(q);
+
+      // Check if any user matches the provided credentials
+      if (querySnapshot.empty) {
+        setError('Invalid email or password');
+      } else {
+        // Navigate to another screen upon successful login
+        console.log('good');
+        navigation.navigate('Welcome_page'); // Replace 'MainScreen' with your desired screen
+      }
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.headerText}>Login</Text>
-      <Text style={styles.descriptionText}>Login to continue using the app</Text>
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Username</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
-          value={text1}
-          onChangeText={(text) => setText1(text)}
-          placeholder="Enter your username"
+          value={email}
+          onChangeText={(text) => setEmail(text)}
+          placeholder="Enter your email"
+          autoCapitalize="none"
         />
       </View>
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Password</Text>
         <TextInput
           style={styles.input}
-          value={text2}
-          onChangeText={(text) => setText2(text)}
+          value={password}
+          onChangeText={(text) => setPassword(text)}
           placeholder="Enter your password"
-          secureTextEntry={true}
+          secureTextEntry
         />
       </View>
-      <TouchableOpacity style={styles.buttonContainer} onPress={handleButtonPress}>
+      <TouchableOpacity style={styles.buttonContainer} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.outlinedButtonContainer} onPress={handleButtonPress}>
-        <Text style={styles.label}>Don't have an account? Sign up
-</Text>
       </TouchableOpacity>
     </View>
   );
@@ -60,11 +76,9 @@ const styles = StyleSheet.create({
     color: '#72401E',
     alignSelf: 'flex-start',
   },
-  descriptionText: {
-    fontSize: 18,
-    marginBottom: 20,
-    color: '#72401E',
-    alignSelf: 'flex-start',
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
   inputGroup: {
     marginBottom: 10,
@@ -87,10 +101,6 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 100,
     borderRadius: 12,
-  },
-  outlinedButtonContainer: {
-    paddingVertical: 15,
-    paddingHorizontal: 30,
   },
   buttonText: {
     color: 'white',

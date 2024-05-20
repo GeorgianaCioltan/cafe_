@@ -1,15 +1,17 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
 const DELIVERED = () => {
+    const navigation = useNavigation();
     return(
         <View style={styles.background}>
             <StatusBar style="auto" />
             <Text style={styles.text1}>Your order has been delivered!</Text>
             <Text style={styles.text2}>Thank you!</Text>
             <Image source={require('../assets/Coffee-Table-and-Books-580x386.png')} style={styles.img} />
-            <TouchableOpacity style={styles.but} >
+            <TouchableOpacity style={styles.but} onPress={()=>navigation.navigate('Feedback')}>
                 <LinearGradient colors={['#C06A30', '#593116']} start={[0, 0]} end={[0, 1]} style={styles.butGradient}>
                     <Text style={styles.but_txt} >Give us a feedback</Text>
                 </LinearGradient>
@@ -24,7 +26,7 @@ const styles = StyleSheet.create({
     },
     text1: {
         position:'relative',
-      bottom:0,
+      top:170,
       textAlign: 'center',
       fontSize: 48,
       lineHeight: 45,
@@ -33,7 +35,7 @@ const styles = StyleSheet.create({
     },
     text2: {
         position:'relative',
-        top: 30,
+        top: 190,
         textAlign: 'center',
         fontSize: 48,
         lineHeight: 45,
@@ -46,6 +48,7 @@ const styles = StyleSheet.create({
         height: 300, // Set the height to the desired value
         alignSelf: 'center',
         resizeMode: 'center',
+        top:200,
         justifyContent:'center'
     },
     but:{
@@ -53,7 +56,8 @@ const styles = StyleSheet.create({
         position:'relative',
         width:330,
         height:70,
-        top:90,
+        top:230,
+        left:20,
         alignItems:'center',
         justifyContent:'center'
 

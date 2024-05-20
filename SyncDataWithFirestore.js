@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { db } from './firebase.config';
-import { coffees, drinks, pastry } from './components/data';
+import { coffees, drinks, pastry, users } from './components/data';
 
 const synchronizeFirestoreWithData = async () => {
   try {
@@ -15,6 +15,8 @@ const synchronizeFirestoreWithData = async () => {
 
     // Synchronize pastry
     await synchronizeCollectionWithData(pastry, 'pastry');
+
+    await synchronizeCollectionWithData(users, 'users');
 
     console.log('Firestore data synchronized with local data successfully!');
   } catch (error) {

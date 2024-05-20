@@ -1,14 +1,38 @@
-import React, { useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, TouchableOpacity, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, FlatList, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase.config'; // Assuming you have a db configuration file
 import Sidebar from './Sidebar';
+import { coffees, drinks, pastry } from './data';
+import { StatusBar } from 'expo-status-bar';
 
 const Stats2 = () => {
-  const [order, setOrder] = useState([
-    { id: '1', name: 'Caffe Latte', price: '$3.50', image: require('../assets/caffe-latte.png'), time: '5 minutes', delivered: false },
-    { id: '2', name: 'Natural Juice', price: '$3.50', image: require('../assets/juice.png'), time: '8 minutes', delivered: false },
-    { id: '3', name: 'Queque', price: '$4.00', image: require('../assets/queque.png'), time: '2 minutes', delivered: false },
-  ]);
+  const [order, setOrder] = useState([]);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchUserCart = async () => {
+      try {
+        // Fetch the user's cart data from Firestore
+        const userDocRef = doc(db, 'users', '1'); // Replace '1' with the actual user ID
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          // Set cart items to the order state
+          setOrder(userData.cart || []);
+        }
+      } catch (error) {
+        console.error('Error fetching user cart:', error);
+      }
+    };
+
+    fetchUserCart(); // Call the function to fetch user cart data
+  }, []);
+
+  // Check if all items are delivered
+  const allDelivered = order.length > 0 && order.every(item => item.delivered);
+
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.item} onPress={() => handlePress(item)}>
@@ -27,15 +51,17 @@ const Stats2 = () => {
   const handlePress = (item) => {
     const updatedOrder = order.map(orderItem => {
       if (orderItem.id === item.id) {
-        return { ...orderItem, time: 'Delivered', delivered: true };
+        return { ...orderItem, delivered: true };
       }
       return orderItem;
     });
     setOrder(updatedOrder);
   };
-
-  // Check if all items are delivered
-  const allDelivered = order.every(item => item.delivered);
+  if (allDelivered===true) {
+    navigation.navigate('DELIVERED');
+  }
+  
+  
 
   return (
     <View style={styles.container}>

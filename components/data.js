@@ -24,4 +24,7 @@ export const coffees = [
     { id: '3', name: 'Pão de Deus', price: 4.00, image: require('../assets/pao.png'), takeaway: false },
     { id: '4', name: 'Queque', price: 4.00, image: require('../assets/queque.png'),takeaway: false },
   ];
+  export const users = [
+    { id: '1', email:'georgianacioltan@gmail.com',name:'Georgiana',surname:'Cioltan',phone:'+40 751582677'}
+  ]
   

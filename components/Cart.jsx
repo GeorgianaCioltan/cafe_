@@ -1,214 +1,194 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image,TouchableOpacity,} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, FlatList, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase.config'; // Assuming you have a db configuration file
 import { LinearGradient } from 'expo-linear-gradient';
 import Sidebar from './Sidebar';
 
 const Cart = () => {
-    return (
-      <View style={styles.container}>
-        <StatusBar style="auto" />
-        <Text style={styles.ord}>Your Order</Text>
-        <Image source={require('../assets/table.png')} style={styles.img}/>
-        <Text style={styles.table}>Table</Text>
-        <Text style={styles.num}>16</Text>
-        <View style={styles.obj}>
-            <Text style={styles.name}>Long Espresso</Text>
-            <Text style={styles.other}>With Coconut Milk</Text>
-            <Text style={styles.price}>€2.50</Text>
-            <Text style={styles.qnt}>x2</Text>
-            <TouchableOpacity style={styles.edit}>
-                <Image source={require('../assets/edit.png')} style={styles.edit}/>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.delete}>
-                <Image source={require('../assets/delete.png')} style={styles.delete}/>
-            </TouchableOpacity>
-        </View>
-        <TouchableOpacity style={styles.mtd}>
-            <Text style={styles.mtdt}>Method of Payment</Text>
-            <Image source={require('../assets/down.png')} style={styles.right} />
-            <Image source={require('../assets/images.png')} style={styles.card} />
-        </TouchableOpacity>
-        <View style={styles.subt}>
-            <Text style={styles.sub1}>Subtotal:</Text>
-            <Text style={styles.sub2}>€2.50</Text>
-        </View>
-        <TouchableOpacity style={styles.but} >
-                    <LinearGradient colors={['#C06A30', '#593116']} start={[0, 0]} end={[0, 1]} style={styles.butGradient}>
-                        <Text style={styles.but_txt}>Finish Order</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
-          <Sidebar/>
-      </View>
-    );
-  }
-  
-  const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        alignContent:'center',
-        backgroundColor:'#DCC3B9'
-      },
-    ord: {
-        position:'absolute',
-        textAlign: 'center',
-        fontSize: 35,
-        lineHeight: 40,
-        fontWeight: 'bold',
-        top:50,
-        color: '#72401E', 
-      },
-    img: {
-        position:'absolute',
-        right:100,
-        top:120
-      },
-    table: {
-        position:'absolute',
-        color:'#72401E',
-        fontSize:30,
-        fontWeight:'bold',
-        top:120,
-        right:20  
-      },
-    num: {
-        position:'absolute',
-        color:'#72401E',
-        fontSize:25,
-        top:120,
-        left:120  
-      },
-    obj: {
-        position: 'absolute',
-        width: 375,
-        height: 150,
-        backgroundColor: '#DCC3B9',
-        borderTopWidth: 1, // Add border at the top
-        borderBottomWidth: 1, // Add border at the bottom
-        borderColor: '#000', // Border color
-        top:180
-    },
-    name: {
-        position:'absolute',
-        color:'#72401E',
-        fontSize:30,
-        fontWeight:'bold',
-        top:20,
-        left:20
-    },
-    other: {
-        position:'absolute',
-        color:'#72401E',
-        fontSize:20,
-        top:60,
-        left:20
-    },
-    price: {
-        position:'absolute',
-        color:'#72401E',
-        fontSize:30,
-        fontWeight:'bold',
-        top:20,
-        right:20
-    },
-    qnt: {
-        position:'absolute',
-        color:'#72401E',
-        fontSize:30,
-        fontWeight:'bold',
-        bottom:20,
-        right:20
-    },
-    edit: {
-        position:'absolute',
-        height:30,
-        width:30,
-        bottom:10,
-        left:20
-        },
-    delete: {
-        position:'absolute',
-        height:30,
-        width:30,
-        bottom:10,
-        left:60
-        },
-    
-    but:{
-        borderRadius: 0,
-        position:'absolute',
-        width:376,
-        height:60,
-        bottom:93,
-        alignItems:'center',
-        justifyContent:'center'
+  const [cartItems, setCartItems] = useState([]);
+  const navigation = useNavigation();
 
-    },
-    butGradient: {
-        flex: 1,
-        borderRadius: 0,
-        width: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    but_txt: {
-      textAlign: 'center',
-      fontSize: 25,
-      fontWeight: 'bold',
-      color: '#FFFFFF',
-    },
-    mtd: {
-      position: 'absolute',
-      width: 375,
-      height: 50,
-      backgroundColor: '#DCC3B9',
-      borderWidth:1,
-      borderColor: '#000', // Border color
-      top:580,
-      justifyContent:'center',
-      alignContent:'center',
-      alignItems:'center'
+  useEffect(() => {
+    const fetchUserCart = async () => {
+      try {
+        // Fetch the user's cart data from Firestore
+        const userDocRef = doc(db, 'users', '1'); // Replace '1' with the actual user ID
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          // Set cart items
+          setCartItems(userData.cart || []);
+        }
+      } catch (error) {
+        console.error('Error fetching user cart:', error);
+      }
+    };
+
+    fetchUserCart(); // Call the function to fetch user cart data
+  }, []);
+  const calculateSubtotal = () => {
+    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+  };
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('CartItemDetails', { itemId: item.id })}>
+      <Text style={styles.name}>{item.name}</Text>
+      <Text style={styles.other}>{item.other}</Text>
+      <Text style={styles.price}>{item.price}</Text>
+      <Text style={styles.quantity}>{`x${item.quantity}`}</Text>
+      <TouchableOpacity style={styles.delete}>
+        <Image source={require('../assets/delete.png')} style={styles.deleteIcon} />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.ord}>Your Order</Text>
+      <FlatList
+        data={cartItems}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        style={styles.flatList}
+      />
+      <View style={styles.payment}>
+        <Text style={styles.methodOfPayment}>Method of Payment:</Text>
+        <Image source={require('../assets/down.png')} style={styles.right} />
+        <Image source={require('../assets/images.png')} style={styles.card} />
+      </View>
+      <View style={styles.subt}>
+        <Text style={styles.sub1}>Subtotal:</Text>
+        <Text style={styles.sub2}>€{calculateSubtotal()}</Text>
+      </View>
+      <TouchableOpacity style={styles.but} onPress={()=>navigation.navigate('OrderPaid')}>
+        <LinearGradient colors={['#C06A30', '#593116']} start={[0, 0]} end={[0, 1]} style={styles.butGradient}>
+          <Text style={styles.but_txt}>Finish Order</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+      <Sidebar/>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#DCC3B9',
+    paddingVertical: 20,
+    paddingHorizontal: 10,
   },
-    mtdt: {
-      position:'absolute',
-      fontSize:20,
-      fontWeight:'bold'
-    },
-    right: {
-      position:'absolute',
-      right:55
-    },
-    card: {
-      position:'absolute',
-      left:50,
-      height:40,
-      width:40
-    },
-    subt: {
-      position: 'absolute',
-      width: 375,
-      height: 30,
-      backgroundColor: '#DCC3B9',
-      borderWidth:1,
-      borderColor: '#000', // Border color
-      top:630,
-      justifyContent:'center',
-      alignContent:'center',
-      alignItems:'center'
+  ord: {
+    fontSize: 35,
+    fontWeight: 'bold',
+    color: '#72401E',
+    textAlign: 'center',
+    top:40,
+    marginBottom: 50,
+  },
+  flatList: {
+    flexGrow: 1,
+    marginBottom: 20,
+  },
+  item: {
+    backgroundColor: '#FFF',
+    padding: 20,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    borderRadius: 10,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#72401E',
+  },
+  other: {
+    fontSize: 16,
+    color: '#72401E',
+  },
+  price: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#72401E',
+    left:230
+  },
+  quantity: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#72401E',
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+  },
+  editIcon: {
+    width: 30,
+    height: 30,
+  },
+  delete: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+  },
+  deleteIcon: {
+    width: 30,
+    height: 30,
+  },
+  but: {
+    borderRadius: 20,
+    width: '100%',
+    height: 60,
+    bottom:90,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  butGradient: {
+    flex: 1,
+    borderRadius: 20,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  but_txt: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  payment: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    bottom:70,
+    left:40
+  },
+  methodOfPayment: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginRight: 10,
+  },
+  right: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
+  card: {
+    width: 40,
+    height: 40,
+  },
+  subt: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    bottom:80
   },
   sub1: {
-    position:'absolute',
-    fontSize:20,
-    fontWeight:'bold',
-    left:20
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   sub2: {
-    position:'absolute',
-    fontSize:20,
-    fontWeight:'bold',
-    right:20
+    fontSize: 20,
+    fontWeight: 'bold',
   },
-    });
-    
+});
+
 export default Cart;

@@ -69,6 +69,52 @@ const Milkshake = () => {
             setQuantity(prevQuantity => prevQuantity - 1);
         }
     };
+    const addToCart = async () => {
+        try {
+            console.log("drink Data:", drinkData);
+            // Check if drinkData is properly initialized
+            if (!drinkData) {
+                console.log("drink data is not yet loaded");
+                return; // Exit early if drinkData is not initialized
+            }
+    
+            const userDocRef = doc(db, 'users', '1');
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                let cart = userData.cart;
+                if (!Array.isArray(cart)) {
+                    cart = []; // Initialize cart to an empty array if it's not already an array
+                }
+                console.log("Current Cart:", cart);
+    
+                // Construct new item to add to cart
+                const newItem = {
+                    name: drinkData.name,
+                    price: drinkData.price,
+                    drinkId: '5',
+                    quantity: quantity,
+                    observations: text,
+                    type: selectedMilk,
+                    takeaway: isEnabled ? true : false,
+                };
+    
+                // Add new item to cart
+                const newCart = [...cart, newItem];
+                console.log("New Cart:", newCart);
+    
+                // Update the user document with the new cart data
+                await updateDoc(userDocRef, { cart: newCart });
+    
+                console.log('Item added to cart successfully');
+                navigation.navigate('Menu');
+            } else {
+                console.log('User document does not exist');
+            }
+        } catch (error) {
+            console.error('Error adding item to cart:', error);
+        }
+    };
 
     if (!drinkData) {
         return (
@@ -116,7 +162,7 @@ const Milkshake = () => {
                 <TouchableOpacity style={styles.btPlus} onPress={incrementQuantity}>
                     <Text style={styles.plus}>+</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.but} >
+                <TouchableOpacity style={styles.but} onPress={() => addToCart(selectedMilk)}>
                     <LinearGradient colors={['#C06A30', '#593116']} start={[0, 0]} end={[0, 1]} style={styles.butGradient}>
                         <Text style={styles.but_txt}>Add to Order</Text>
                     </LinearGradient>

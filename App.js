@@ -20,6 +20,7 @@ import ChoosePerfil from './ComponentesInitialScreen/ChoosePerfil'
 import LoginScreen from './ComponentesInitialScreen/LoginScreen';
 import SyncData from './SyncDataWithFirestore';
 import Navigator from './navigation/Navigator';
+import RegisterScreen from './ComponentesInitialScreen/RegisterScreen';
 
 const App = () => {
   return (

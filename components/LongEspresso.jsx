@@ -14,7 +14,7 @@ const LongEspresso = () => {
     const [text, setText] = useState(''); // State for observation text
     const [quantity, setQuantity] = useState(1); // State for quantity
     const [modalVisible, setModalVisible] = useState(false);
-    const [selectedMilk, setSelectedMilk] = useState(null);
+    const [selectedMilk, setSelectedMilk] = useState('No milk');
     const [coffeeData, setCoffeeData] = useState(null); 
     const navigation = useNavigation();
 
@@ -36,6 +36,7 @@ const LongEspresso = () => {
 
         fetchLongEsspresoData(); // Call the function to fetch data
     }, []);
+    const userDocId='1';
 
 
     const handleSelectMilk = (milk) => {
@@ -81,6 +82,54 @@ const LongEspresso = () => {
             setQuantity(prevQuantity => prevQuantity - 1); // Decrement quantity if greater than 1
         }
     };
+    const addToCart = async () => {
+        try {
+            console.log("Coffee Data:", coffeeData);
+            // Check if coffeeData is properly initialized
+            if (!coffeeData) {
+                console.log("Coffee data is not yet loaded");
+                return; // Exit early if coffeeData is not initialized
+            }
+    
+            const userDocRef = doc(db, 'users', userDocId);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                let cart = userData.cart;
+                if (!Array.isArray(cart)) {
+                    cart = []; // Initialize cart to an empty array if it's not already an array
+                }
+                console.log("Current Cart:", cart);
+    
+                // Construct new item to add to cart
+                const newItem = {
+                    name: coffeeData.name,
+                    price: coffeeData.price,
+                    coffeeId: '1',
+                    quantity: quantity,
+                    observations: text,
+                    milkType: selectedMilk
+                };
+    
+                // Add new item to cart
+                const newCart = [...cart, newItem];
+                console.log("New Cart:", newCart);
+    
+                // Update the user document with the new cart data
+                await updateDoc(userDocRef, { cart: newCart });
+    
+                console.log('Item added to cart successfully');
+                navigation.navigate('Menu');
+            } else {
+                console.log('User document does not exist');
+            }
+        } catch (error) {
+            console.error('Error adding item to cart:', error);
+        }
+    };
+    
+    
+    
     if (!coffeeData) {
         return (
             <View style={{flex:1, backgroundColor:'#fff', justifyContent:'center', alignItems:'center'}}>
@@ -103,7 +152,7 @@ const LongEspresso = () => {
                 <Text style={styles.es_txt}>{coffeeData.name}</Text>
                 <Text style={styles.price}>{coffeeData.price}$</Text>
                 <View style={styles.milkBg}>
-                    <Text style={styles.milk}>Caffeine</Text>
+                    <Text style={styles.milk}>Milk</Text>
                     <Switch
                         style={styles.swc}
                         trackColor={{ false: "#FFFFFF", true: "#00830D" }}
@@ -128,7 +177,7 @@ const LongEspresso = () => {
                 <TouchableOpacity style={styles.btPlus} onPress={incrementQuantity}>
                     <Text style={styles.plus}>+</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.but} >
+                <TouchableOpacity style={styles.but} onPress={() => addToCart(selectedMilk)} >
                     <LinearGradient colors={['#C06A30', '#593116']} start={[0, 0]} end={[0, 1]} style={styles.butGradient}>
                         <Text style={styles.but_txt}>Add to Order</Text>
                     </LinearGradient>

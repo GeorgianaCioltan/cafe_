@@ -3,8 +3,10 @@ import { StyleSheet, Text, View, Image, TouchableOpacity, Switch} from 'react-na
 import { LinearGradient } from 'expo-linear-gradient';
 import React, {useState} from 'react';
 import { Rating, AirbnbRating } from 'react-native-ratings';
+import { useNavigation } from '@react-navigation/native';
 
 const Feedback = () => {
+    const navigation = useNavigation();
     const [isEnabled, setIsEnabled] = useState(false);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
     return(
@@ -29,7 +31,7 @@ const Feedback = () => {
                     onFinishRating={this.ratingCompleted}
                     style={styles.rating} />
             </View>
-            <TouchableOpacity style={styles.but} >
+            <TouchableOpacity style={styles.but} onPress={()=>navigation.navigate('Menu')} >
                 <LinearGradient colors={['#C06A30', '#593116']} start={[0, 0]} end={[0, 1]} style={styles.butGradient}>
                     <Text style={styles.but_txt} >Go Back To Menu</Text>
                 </LinearGradient>
@@ -42,7 +44,7 @@ const styles = StyleSheet.create({
         position:'relative',
         backgroundColor:'#ffffff',
         height:400,
-        top:40,
+        top:200,
         shadowOffset: {width: -2, height: 4},  
         shadowColor: '#171717',  
         shadowOpacity: 0.2,  
@@ -71,7 +73,7 @@ const styles = StyleSheet.create({
     swc: {
         position:'relative',
         bottom:165,
-        left:200,
+        left:220,
     },
     coffee: {
         position:'relative',
@@ -100,6 +102,7 @@ const styles = StyleSheet.create({
         width:330,
         height:70,
         bottom:40,
+        left:20,
         alignItems:'center',
         justifyContent:'center'
 
