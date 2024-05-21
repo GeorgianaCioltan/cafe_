@@ -31,6 +31,7 @@ import OrderPaid from '../components/OrderPaid';
 import PENDING from '../components/PENDING';
 import DELIVERED from '../components/DELIVERED';
 import Feedback from '../components/Feedback';
+import EditProfile from '../components/EditProfile';
 const Stack = createStackNavigator();
 
 const Navigator = () => {
@@ -182,6 +183,12 @@ const Navigator = () => {
           component={Feedback} 
           options={{ headerShown: false }} // Hide header for LongEspresso screen
         />
+        <Stack.Screen 
+          name="EditProfile" 
+          component={EditProfile} 
+          options={{ headerShown: false }} // Hide header for LongEspresso screen
+        />
+        
 
         
       </Stack.Navigator>

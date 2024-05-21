@@ -1,41 +1,88 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
+import { doc, updateDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../firebase.config';
+import { useNavigation } from '@react-navigation/native';
 
-const EditProfile = () => {
-    const [name, setName] = useState('');
-    const [surname, setSurname] = useState('');
-    const [selectedImage, setSelectedImage] = useState(null);
-    
-   
-    
+const EditProfile = ({ route }) => {
+    const { userData } = route.params;
+    const [name, setName] = useState(userData.name || '');
+    const [surname, setSurname] = useState(userData.surname || '');
+    const [selectedImage, setSelectedImage] = useState(userData.profileImage || null);
+    const [uploading, setUploading] = useState(false);
+    const navigation = useNavigation();
+
     const handleAddPhoto = async () => {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        console.log("Permission result:", permissionResult);
-        
         if (permissionResult.granted === false) {
             alert("Permission to access camera roll is required!");
             return;
         }
-        
+
         const pickerResult = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [1, 1],
             quality: 1,
         });
-        console.log("Picker result:", pickerResult);
-    
-        if (!pickerResult.cancelled) {
-            setSelectedImage(pickerResult.uri);
-        }
-        if (!pickerResult.cancelled && pickerResult.assets.length > 0) {
+
+        if (!pickerResult.canceled) {
+            console.log("Picker result:", pickerResult); // Debugging log
             setSelectedImage(pickerResult.assets[0].uri);
         }
     };
-    
+
+    const uploadImageAsync = async (uri) => {
+        setUploading(true);
+        try {
+            const response = await fetch(uri);
+            const blob = await response.blob();
+            const fileRef = ref(storage, 'profileImages/' + Date.now());
+            await uploadBytes(fileRef, blob);
+            const downloadURL = await getDownloadURL(fileRef);
+            return downloadURL;
+        } catch (error) {
+            console.error("Error uploading image: ", error);
+            return null;
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleSave = async () => {
+        try {
+            const userId = '1';
+            const userDocRef = doc(db, 'users', userId);
+            let profileImageUrl = selectedImage;
+
+            // If a new image was selected and it is not already a URL, upload it to Firebase Storage
+            if (selectedImage && !selectedImage.startsWith('http')) {
+                profileImageUrl = await uploadImageAsync(selectedImage);
+                console.log("Uploaded image URL:", profileImageUrl); // Debugging log
+            }
+
+            // Build the update data object dynamically
+            const updateData = {
+                name,
+                surname,
+            };
+
+            // Add profileImage field only if a new image was selected
+            if (profileImageUrl) {
+                updateData.profileImage = profileImageUrl;
+            }
+
+            await updateDoc(userDocRef, updateData);
+            navigation.navigate('Profile', { updatedProfileImage: profileImageUrl }); // Corrected to use profileImageUrl
+            
+        } catch (error) {
+            console.error("Error updating user data: ", error);
+        }
+    };
 
     const userText = name + ' ' + surname;
 
@@ -55,22 +102,26 @@ const EditProfile = () => {
                     </View>
                 </LinearGradient>
             </View>
+            <TouchableOpacity onPress={handleAddPhoto}>
+                                <Text style={styles.add2}>Change photo</Text>
+                            </TouchableOpacity>
             <Text style={styles.userName}>{userText || 'Your Name'}</Text>
             <TextInput onChangeText={setName} value={name} placeholder="Change Your Name" style={styles.setName} />
             <TextInput onChangeText={setSurname} value={surname} placeholder="Change Your Surname" style={styles.setSurname} />
             <TextInput placeholder="Change Your Phone Number" style={styles.setPhone} />
             <TextInput placeholder="Change Your Email" style={styles.setEmail} />
-            <TouchableOpacity style={styles.but2} >
+            <TouchableOpacity style={styles.but2} onPress={handleSave}>
                 <LinearGradient colors={['#C06A30', '#593116']} start={[0, 0]} end={[0, 1]} style={styles.butGradient}>
-                    <Text style={styles.but_txt} >Save</Text>
+                    <Text style={styles.but_txt}>Save</Text>
                 </LinearGradient>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.GoBack}>
+            {uploading && <ActivityIndicator size="large" color="#0000ff" />}
+            <TouchableOpacity style={styles.GoBack} onPress={() => navigation.goBack()}>
                 <Image source={require('../assets/left.png')} />
             </TouchableOpacity>
         </View>
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -123,6 +174,13 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#593116',
+    },
+    add2: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#593116',
+        bottom:90,
+        zIndex:999
     },
     setName: {
         position: 'absolute',

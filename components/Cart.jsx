@@ -28,11 +28,12 @@ const Cart = () => {
 
     fetchUserCart(); // Call the function to fetch user cart data
   }, []);
+
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item, index }) => (
     <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('CartItemDetails', { itemId: item.id })}>
       <Text style={styles.name}>{item.name}</Text>
       <Text style={styles.other}>{item.other}</Text>
@@ -50,7 +51,7 @@ const Cart = () => {
       <FlatList
         data={cartItems}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
         style={styles.flatList}
       />
       <View style={styles.payment}>
@@ -62,12 +63,12 @@ const Cart = () => {
         <Text style={styles.sub1}>Subtotal:</Text>
         <Text style={styles.sub2}>€{calculateSubtotal()}</Text>
       </View>
-      <TouchableOpacity style={styles.but} onPress={()=>navigation.navigate('OrderPaid')}>
+      <TouchableOpacity style={styles.but} onPress={() => navigation.navigate('OrderPaid')}>
         <LinearGradient colors={['#C06A30', '#593116']} start={[0, 0]} end={[0, 1]} style={styles.butGradient}>
           <Text style={styles.but_txt}>Finish Order</Text>
         </LinearGradient>
       </TouchableOpacity>
-      <Sidebar/>
+      <Sidebar />
     </View>
   );
 };
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#72401E',
     textAlign: 'center',
-    top:40,
+    top: 40,
     marginBottom: 50,
   },
   flatList: {
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#72401E',
-    left:230
+    left: 230,
   },
   quantity: {
     fontSize: 20,
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     width: '100%',
     height: 60,
-    bottom:90,
+    bottom: 90,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -158,8 +159,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
-    bottom:70,
-    left:40
+    bottom: 70,
+    left: 40,
   },
   methodOfPayment: {
     fontSize: 20,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
-    bottom:80
+    bottom: 80,
   },
   sub1: {
     fontSize: 20,
